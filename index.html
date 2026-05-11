@@ -34,8 +34,11 @@ body.light::before{background:radial-gradient(ellipse 80% 60% at 20% -10%,rgba(2
 /* ── HEADER ── */
 header{position:sticky;top:0;z-index:200;background:rgba(13,15,18,.88);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:60px;gap:12px;}
 body.light header{background:rgba(240,237,232,.9);}
-.logo{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:600;color:var(--gold);display:flex;align-items:center;gap:8px;white-space:nowrap;}
-.logo small{color:var(--text-dim);font-weight:300;font-size:.75rem;letter-spacing:.15em;text-transform:uppercase;margin-top:4px;}
+.logo{display:flex;align-items:center;gap:10px;white-space:nowrap;min-width:0;}
+.logo-mark{width:28px;height:28px;position:relative;display:inline-flex;align-items:center;justify-content:center;transform:rotate(45deg);border:2px solid var(--gold);box-shadow:0 0 14px rgba(212,175,80,.12),inset 0 0 6px rgba(212,175,80,.08);flex-shrink:0;}
+.logo-mark span{width:11px;height:11px;background:linear-gradient(135deg,var(--gold-l),var(--gold));display:block;box-shadow:0 2px 8px rgba(0,0,0,.35);}
+.logo-word{font-family:'Cormorant Garamond',serif;font-size:1.85rem;line-height:1;font-weight:700;color:var(--gold);letter-spacing:.01em;text-shadow:0 1px 0 rgba(255,255,255,.08),0 4px 16px rgba(0,0,0,.45);}
+.logo-sub{font-family:'Cormorant Garamond',serif;color:var(--text-dim);font-weight:300;font-size:.78rem;letter-spacing:.28em;text-transform:uppercase;margin-top:6px;}
 .hdr-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .month-badge{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);background:var(--card);border:1px solid var(--border);padding:5px 12px;border-radius:20px;white-space:nowrap;}
 .save-badge{font-size:11px;color:var(--green);opacity:0;transition:opacity .3s;white-space:nowrap;}
@@ -142,16 +145,18 @@ input[type=number]{font-family:'JetBrains Mono',monospace;}
 .btn-green:hover{background:var(--green);color:#fff;}
 
 /* ── ACCOUNTS ── */
-.acc-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.acc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
 .acc-card{background:var(--card2);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;position:relative;overflow:hidden;}
 .acc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
 .acc-card.sav::before{background:var(--blue);}
 .acc-card.chk::before{background:var(--green);}
+.acc-card.inv::before{background:var(--purple);}
 .acc-card.nw::before{background:var(--gold);}
 .acc-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:6px;}
 .acc-val{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:600;line-height:1;}
 .acc-card.sav .acc-val{color:var(--blue);}
 .acc-card.chk .acc-val{color:var(--green);}
+.acc-card.inv .acc-val{color:var(--purple);}
 .acc-card.nw .acc-val{color:var(--gold);}
 .acc-edit{display:flex;gap:7px;margin-top:10px;align-items:center;}
 .acc-edit input{flex:1;}
@@ -259,7 +264,7 @@ input[type=number]{font-family:'JetBrains Mono',monospace;}
   .hero-stats{grid-template-columns:1fr 1fr;}
   .tab-panel.grid2,.tab-panel.grid3{grid-template-columns:1fr;}
   .acc-grid{grid-template-columns:1fr;}
-  .logo small{display:none;}
+  .logo-sub{display:none;}
 }
 </style>
 </head>
@@ -268,7 +273,11 @@ input[type=number]{font-family:'JetBrains Mono',monospace;}
 <canvas id="confetti-canvas"></canvas>
 
 <header>
-  <div class="logo">◈ Ledger <small>Finance</small></div>
+  <div class="logo" aria-label="Ledger Finance">
+    <span class="logo-mark"><span></span></span>
+    <span class="logo-word">Ledger</span>
+    <span class="logo-sub">Finance</span>
+  </div>
   <div class="hdr-right">
     <div class="month-badge" id="monthBadge"></div>
     <button class="semester-pill" id="semesterBtn" onclick="toggleSemester()">📚 Semester Mode</button>
@@ -306,7 +315,7 @@ input[type=number]{font-family:'JetBrains Mono',monospace;}
     <div class="hstat networth">
       <div class="hstat-lbl">Net Worth</div>
       <div class="hstat-val" id="hNetWorth">$0</div>
-      <div class="hstat-sub">savings + checking − debt</div>
+      <div class="hstat-sub">savings + checking + investing − debt</div>
     </div>
     <div class="hstat leisure">
       <div class="hstat-lbl">Leisure Budget</div>
@@ -496,10 +505,18 @@ input[type=number]{font-family:'JetBrains Mono',monospace;}
             <button class="btn btn-ghost" onclick="updateChecking()">Set</button>
           </div>
         </div>
+        <div class="acc-card inv">
+          <div class="acc-lbl">Investing</div>
+          <div class="acc-val" id="investingDisplay">$0</div>
+          <div class="acc-edit">
+            <input type="number" id="investingInput" placeholder="Enter balance">
+            <button class="btn btn-ghost" onclick="updateInvesting()">Set</button>
+          </div>
+        </div>
         <div class="acc-card nw">
           <div class="acc-lbl">Net Worth</div>
           <div class="acc-val" id="netWorthDisplay">$0</div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">savings + checking − total debt</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">savings + checking + investing − total debt</div>
           <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
             <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Monthly Savings Goal</div>
             <div class="acc-edit">
@@ -693,7 +710,7 @@ input[type=number]{font-family:'JetBrains Mono',monospace;}
 //  STATE
 // ═══════════════════════════════════════════════════
 let S = {
-  income: [], expenses: [], savings: 0, checking: 0,
+  income: [], expenses: [], savings: 0, checking: 0, investing: 0,
   savingsGoal: 0, debts: [], goals: [], wishlist: [],
   history: [], semesterMode: false, theme: 'dark'
 };
@@ -733,7 +750,7 @@ const totalIncome = () => S.income.reduce((s,i) => s + toMonthly(i.amount,i.freq
 const totalExpenses = () => S.expenses.reduce((s,e) => s + toMonthly(e.amount,e.freq), 0);
 const totalDebt = () => S.debts.reduce((s,d) => s + (parseFloat(d.balance)||0), 0);
 const leisureAmt = () => totalIncome() - totalExpenses() - (S.savingsGoal||0);
-const netWorth = () => S.savings + S.checking - totalDebt();
+const netWorth = () => (parseFloat(S.savings)||0) + (parseFloat(S.checking)||0) + (parseFloat(S.investing)||0) - totalDebt();
 
 // ═══════════════════════════════════════════════════
 //  TABS
@@ -862,6 +879,12 @@ function updateChecking() {
   S.checking = v; document.getElementById('checkingInput').value = '';
   save(); renderAll();
 }
+function updateInvesting() {
+  const v = parseFloat(document.getElementById('investingInput').value);
+  if (isNaN(v)) return;
+  S.investing = v; document.getElementById('investingInput').value = '';
+  save(); renderAll();
+}
 function updateSavingsGoal() {
   const v = parseFloat(document.getElementById('savingsGoalInput').value);
   if (isNaN(v)) return;
@@ -893,6 +916,7 @@ function debtPayoffMonths(balance, rate, minPay) {
 function renderAccounts() {
   document.getElementById('savingsDisplay').textContent = fmt(S.savings);
   document.getElementById('checkingDisplay').textContent = fmt(S.checking);
+  document.getElementById('investingDisplay').textContent = fmt(S.investing || 0);
   const nw = netWorth();
   document.getElementById('netWorthDisplay').textContent = fmt(nw);
   document.getElementById('netWorthDisplay').style.color = nw >= 0 ? 'var(--gold)' : 'var(--red)';
@@ -1264,6 +1288,9 @@ function exportCSV() {
   rows.push(['','','','','']);
   rows.push(['Total Income','','','',totalIncome().toFixed(2)]);
   rows.push(['Total Expenses','','','',totalExpenses().toFixed(2)]);
+  rows.push(['Savings Account','','','',S.savings.toFixed(2)]);
+  rows.push(['Checking Account','','','',S.checking.toFixed(2)]);
+  rows.push(['Investing','','','',(S.investing || 0).toFixed(2)]);
   rows.push(['Savings Goal','','','',S.savingsGoal.toFixed(2)]);
   rows.push(['Leisure Budget','','','',leisureAmt().toFixed(2)]);
   rows.push(['Net Worth','','','',netWorth().toFixed(2)]);
@@ -1285,7 +1312,7 @@ function dl(name, type, content) {
 function clearAllData() {
   if (!confirm('Delete ALL your data? This cannot be undone!')) return;
   localStorage.removeItem('ledger_v3');
-  S = { income:[], expenses:[], savings:0, checking:0, savingsGoal:0, debts:[], goals:[], wishlist:[], history:[], semesterMode:false, theme:S.theme };
+  S = { income:[], expenses:[], savings:0, checking:0, investing:0, savingsGoal:0, debts:[], goals:[], wishlist:[], history:[], semesterMode:false, theme:S.theme };
   confettiFired = false;
   renderAll();
 }
